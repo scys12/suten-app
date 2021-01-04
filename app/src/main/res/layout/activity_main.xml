@@ -36,6 +36,7 @@
                 android:orientation="horizontal"
                 android:background="@drawable/math_bg"
                 android:layout_marginTop="30dp"
+                android:clickable="true"
                 android:padding="3dp"
                 android:layout_gravity="center">
                 <LinearLayout
