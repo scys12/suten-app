@@ -13,6 +13,7 @@ import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import android.widget.Toast
 import androidx.camera.core.*
@@ -22,7 +23,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
+import com.makeramen.roundedimageview.RoundedImageView
 import kotlinx.android.synthetic.main.activity_tebak.*
+import org.w3c.dom.Text
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -86,7 +89,9 @@ class TebakActivity : AppCompatActivity() {
 //            textureView.surfaceTexture = it.surfaceTexture
 //            updateTransform()
 //        }
-        val analysis = ImageAnalyzer(tfLiteClassifier, predictedTextView)
+        val textView = findViewById<TextView>(R.id.predictedTextView)
+        val imageView = findViewById<RoundedImageView>(R.id.predictedImage)
+        val analysis = ImageAnalyzer(tfLiteClassifier, textView, imageView)
 
         val analyzerConfig = ImageAnalysis.Builder()
             .setTargetResolution(screenSize)

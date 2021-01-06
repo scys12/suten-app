@@ -6,16 +6,26 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.ImageReaderProxyProvider
 import androidx.camera.core.impl.ImageReaderProxy
+import com.makeramen.roundedimageview.RoundedImageView
 import kotlinx.android.synthetic.main.activity_tebak.*
 import java.io.ByteArrayOutputStream
 
-class ImageAnalyzer (var tfLiteClassifier: TFLiteClassifier, var predictedTextView: TextView?) : ImageAnalysis.Analyzer {
+class ImageAnalyzer (var tfLiteClassifier: TFLiteClassifier, var predictedTextView: TextView?, var predictedImage: RoundedImageView) : ImageAnalysis.Analyzer {
     override fun analyze(image: ImageProxy) {
         val bitmap = image.toBitmap()
 
         tfLiteClassifier
             .classifyAsync(bitmap)
-            .addOnSuccessListener { resultText -> predictedTextView?.text = resultText }
+            .addOnSuccessListener { resultText ->
+                predictedTextView?.text = resultText
+                if (resultText.equals("rock")){
+                    predictedImage.setImageResource(R.drawable.rock)
+                }else if (resultText.equals("paper")){
+                    predictedImage.setImageResource(R.drawable.paper)
+                }else if (resultText.equals("scissors")){
+                    predictedImage.setImageResource(R.drawable.scissor)
+                }
+            }
             .addOnFailureListener { error ->  }
         image.close()
     }

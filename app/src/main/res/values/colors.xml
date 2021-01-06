@@ -11,4 +11,6 @@
     <color name="col_exit">#FF0000</color>
     <color name="col_end">#B9D5D9</color>
     <color name="top_bg">#0032CB</color>
+    <color name="colorDivider">#ECECEC</color>
+    <color name="colorPrimaryText">#212121</color>
 </resources>
