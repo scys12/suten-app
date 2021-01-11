@@ -19,7 +19,9 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.collections.ArrayList
 import android.graphics.Bitmap
+import android.graphics.RectF
 import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.nnapi.NnApiDelegate
 
 class TFLiteClassifier(private val context: Context) {
 
@@ -28,6 +30,7 @@ class TFLiteClassifier(private val context: Context) {
         private set
 
     private var gpuDelegate: GpuDelegate? = null
+    private var nnApiDelegate: NnApiDelegate? = null
 
     var labels = ArrayList<String>()
 
@@ -36,29 +39,34 @@ class TFLiteClassifier(private val context: Context) {
     private var inputImageWidth: Int = 0
     private var inputImageHeight: Int = 0
     private var modelInputSize: Int = 0
-
-    fun initialize(): Task<Void> {
+    data class DataOutput(val score: Float, val label: String, val inference: Long)
+    fun initialize(option: Int): Task<Void> {
         return call(
             executorService,
             Callable<Void> {
-                initializeInterpreter()
+                initializeInterpreter(option)
                 null
             }
         )
     }
 
     @Throws(IOException::class)
-    private fun initializeInterpreter() {
+    private fun initializeInterpreter(option: Int) {
 
 
 
         val assetManager = context.assets
-        val model = loadModelFile(assetManager, "mobilenet_v1_1.0_224.tflite")
+        val model = loadModelFile(assetManager, "mobilenet23_v1.tflite")
 
-        labels = loadLines(context, "labels.txt")
+        labels = loadLines(context, "labels1.txt")
         val options = Interpreter.Options()
-        gpuDelegate = GpuDelegate()
-        options.addDelegate(gpuDelegate)
+        if (option == 2) {
+            nnApiDelegate = NnApiDelegate()
+            options.addDelegate(nnApiDelegate)
+        } else {
+            gpuDelegate = GpuDelegate()
+            options.addDelegate(gpuDelegate)
+        }
         val interpreter = Interpreter(model, options)
 
         val inputShape = interpreter.getInputTensor(0).shape()
@@ -105,7 +113,7 @@ class TFLiteClassifier(private val context: Context) {
     }
 
 
-    private fun classify(bitmap: Bitmap): String {
+    private fun classify(bitmap: Bitmap): DataOutput {
 
         check(isInitialized) { "TF Lite Interpreter is not initialized yet." }
         val resizedImage =
@@ -121,12 +129,12 @@ class TFLiteClassifier(private val context: Context) {
         var inferenceTime = endTime - startTime
         var index = getMaxResult(output[0])
         var result = "Prediction is ${labels[index]}\nInference Time $inferenceTime ms"
-
-        return result
+        var probability = output[0].get(index)
+        return DataOutput(probability, labels[index], inferenceTime)
     }
 
-    fun classifyAsync(bitmap: Bitmap): Task<String> {
-        return call(executorService, Callable<String> { classify(bitmap) })
+    fun classifyAsync(bitmap: Bitmap): Task<DataOutput> {
+        return call(executorService, Callable<DataOutput> { classify(bitmap) })
     }
 
     fun close() {

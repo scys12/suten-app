@@ -1,6 +1,7 @@
 package com.profexent.suten
 
 import android.graphics.*
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -9,6 +10,7 @@ import androidx.camera.core.impl.ImageReaderProxy
 import com.makeramen.roundedimageview.RoundedImageView
 import kotlinx.android.synthetic.main.activity_tebak.*
 import java.io.ByteArrayOutputStream
+import kotlin.math.E
 
 class ImageAnalyzer (var tfLiteClassifier: TFLiteClassifier, var predictedTextView: TextView?, var predictedImage: RoundedImageView) : ImageAnalysis.Analyzer {
     override fun analyze(image: ImageProxy) {
@@ -17,12 +19,12 @@ class ImageAnalyzer (var tfLiteClassifier: TFLiteClassifier, var predictedTextVi
         tfLiteClassifier
             .classifyAsync(bitmap)
             .addOnSuccessListener { resultText ->
-                predictedTextView?.text = resultText
-                if (resultText.equals("rock")){
+                predictedTextView?.text = "Prediction is ${resultText.label}\n${resultText.score}\nInference Time ${resultText.inference} ms"
+                if (resultText.label.contains("rock")){
                     predictedImage.setImageResource(R.drawable.rock)
-                }else if (resultText.equals("paper")){
+                }else if (resultText.label.contains("paper")){
                     predictedImage.setImageResource(R.drawable.paper)
-                }else if (resultText.equals("scissors")){
+                }else if (resultText.label.contains("scissors")){
                     predictedImage.setImageResource(R.drawable.scissor)
                 }
             }

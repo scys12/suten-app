@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Suten</string>
+    <string name="capture">Capture</string>
+    <string name="preview">Preview</string>
+    <string name="capture_button_alt">Capture</string>
+    <string name="unknown">UNKNOWN</string>
 </resources>

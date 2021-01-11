@@ -43,31 +43,32 @@ class TebakActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tebak)
-        cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProvider = cameraProviderFuture.get()
+
+        tfLiteClassifier
+            .initialize(1)
+            .addOnSuccessListener { }
+            .addOnFailureListener { e -> Log.e(TAG, "Error in setting up the classifier.", e) }
 
         if (allPermissionsGranted()) {
-            textureView.post{
-                cameraProviderFuture.addListener(Runnable {
-                    startCamera(cameraProvider)
-                }, ContextCompat.getMainExecutor(this))
-            }
-            textureView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-                updateTransform()
-            }
+            initCamera()
         } else {
             requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
 
-        tfLiteClassifier
-            .initialize()
-            .addOnSuccessListener { }
-            .addOnFailureListener { e -> Log.e(TAG, "Error in setting up the classifier.", e) }
+    }
 
+    private fun initCamera(){
+        textureView.post{
+            cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+            cameraProvider = cameraProviderFuture.get()
+            cameraProviderFuture.addListener(Runnable {
+                startCamera()
+            }, ContextCompat.getMainExecutor(this))
+        }
     }
 
     @SuppressLint("RestrictedApi")
-    private fun startCamera(cameraProvider: ProcessCameraProvider) {
+    private fun startCamera() {
         val metrics = DisplayMetrics().also { textureView.display.getRealMetrics(it) }
         val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
         val screenAspectRatio = AspectRatio.RATIO_16_9
@@ -85,10 +86,6 @@ class TebakActivity : AppCompatActivity() {
         }.build().also {
             it.setSurfaceProvider(textureView.surfaceProvider)
         }
-//        preview.setOnPreviewOutputUpdateListener {
-//            textureView.surfaceTexture = it.surfaceTexture
-//            updateTransform()
-//        }
         val textView = findViewById<TextView>(R.id.predictedTextView)
         val imageView = findViewById<RoundedImageView>(R.id.predictedImage)
         val analysis = ImageAnalyzer(tfLiteClassifier, textView, imageView)
@@ -127,7 +124,7 @@ class TebakActivity : AppCompatActivity() {
 
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
-                startCamera(cameraProvider)
+                startCamera()
             } else {
                 Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_SHORT)
                     .show()
